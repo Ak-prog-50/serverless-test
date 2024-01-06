@@ -48,7 +48,8 @@ export class ServerlessTestStack extends cdk.Stack {
 
     // API Gateway & log group
     const logGroup = new LogGroup(this, "myCarbonRestAPIAccessLogs", {
-      retention: RetentionDays.ONE_WEEK,
+      retention: RetentionDays.ONE_DAY,
+      removalPolicy: REMOVAL_POLICY,
     });
     const restApi = new apiGw.RestApi(this, "myCarbonRestAPI", {
       restApiName: "servelress-test-api",

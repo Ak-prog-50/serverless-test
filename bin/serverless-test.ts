@@ -2,6 +2,8 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { ServerlessTestStack } from "../lib/serverless-test-stack";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const environment = process.env.ENVIRONMENT;
 if (!environment) throw new Error("ENVIRONMENT not set");
@@ -23,7 +25,7 @@ const serverlessTestStack = new ServerlessTestStack(
     /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
     tags: {
       environment: environment,
-      project: "serverlessTest"
+      project: "serverlessTest",
     },
   }
 );
