@@ -1,4 +1,5 @@
 .env
+outputs.json
 
 *.js
 !jest.config.js

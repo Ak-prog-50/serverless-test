@@ -1,5 +1,7 @@
 # Serverless Message Handler
 
+- This repo outlines event driven vs workflow based ( step functions ) methods of building a serverles message handler.
+
 - IAC tool is AWS CDK. Infra code can be found in lib directory.
 
 - Use `npm run deploy / yarn deploy`. It will output API GW root url to a file named outputs.json.
