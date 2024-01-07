@@ -26,7 +26,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     if (!isMessageValid) throw ApiError.badRequest("Message is Invalid!");
 
     const { message_id, company_id } = message.metadata;
-    
+
     await s3Client.send(
       new PutObjectCommand({
         Bucket: MESSAGES_BUCKET_NAME,
@@ -47,6 +47,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     return ApiResponse.success("Messages procced and stored!");
   } catch (error) {
-    return ApiError.internal("Internal Server Error");
+    console.error(error);
+    const retError =
+      error instanceof ApiError
+        ? error
+        : ApiError.internal("Intrenal Server Error");
+    return retError;
   }
 };

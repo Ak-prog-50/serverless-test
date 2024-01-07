@@ -60,7 +60,7 @@ export class ServerlessTestStack extends cdk.Stack {
         allowOrigins: apiGw.Cors.ALL_ORIGINS,
         allowMethods: apiGw.Cors.ALL_METHODS,
       },
-      //* You need to manually create an IAM role for each AWS account per region to grant cloudwatch logs write permissions to all APIs.
+      //* need to manually create an account wide IAM role ( per region ) to grant cloudwatch logs write permissions to all APIs.
       deployOptions: {
         accessLogDestination: new apiGw.LogGroupLogDestination(logGroup),
         accessLogFormat: apiGw.AccessLogFormat.custom(
