@@ -1,0 +1,6 @@
+{
+  "ServerlessTestStack": {
+    "ServerlessTestRestAPIEndpointF161DA89": "https://o6hs8ehesj.execute-api.ap-southeast-2.amazonaws.com/prod/",
+    "messagesConstrcutS3BucketURL38BFBC37": "https://s3.ap-southeast-2.amazonaws.com/serverlessteststack-messagesconstrcutmessagesbucke-kiy777nvt16w"
+  }
+}

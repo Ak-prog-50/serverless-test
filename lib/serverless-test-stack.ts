@@ -4,6 +4,8 @@ import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { env } from "process";
 import { MessagesConstruct } from "./L3Constructs/messagesConstruct";
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const REMOVAL_POLICY =
   env.ENVIRONMENT === "dev"
