@@ -1,12 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import * as apiGw from "aws-cdk-lib/aws-apigateway";
-import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
-import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import { env } from "process";
+import { MessagesConstruct } from "./L3Constructs/messagesConstruct";
 
 const REMOVAL_POLICY =
   env.ENVIRONMENT === "dev"
@@ -16,38 +13,6 @@ const REMOVAL_POLICY =
 export class ServerlessTestStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    const messagesTable = new Table(this, `messages-table`, {
-      partitionKey: {
-        name: "messageId",
-        type: AttributeType.STRING,
-      },
-      removalPolicy: REMOVAL_POLICY,
-    });
-
-    const messagesBucket = new Bucket(this, "messages-bucket", {
-      removalPolicy: REMOVAL_POLICY,
-    });
-
-    const lambdaFunctionCodeEntry = `src/API/messages`;
-    const messagesPostLambda = new NodejsFunction(this, "uploader-lambda", {
-      functionName: `messages-post-lambda`,
-      runtime: Runtime.NODEJS_18_X,
-      handler: "handler",
-      entry: `${lambdaFunctionCodeEntry}/post.ts`,
-      timeout: cdk.Duration.seconds(25),
-      memorySize: 256,
-      bundling: {
-        minify: true,
-      },
-      environment: {
-        MESSAGES_BUCKET_NAME: messagesBucket.bucketName,
-        MESSAGES_TABLE_NAME: messagesTable.tableName,
-      },
-    });
-
-    messagesTable.grantWriteData(messagesPostLambda);
-    messagesBucket.grantWrite(messagesPostLambda);
 
     // API Gateway & access logs for API gw
     const logGroup = new LogGroup(this, "accessLogs", {
@@ -73,11 +38,9 @@ export class ServerlessTestStack extends cdk.Stack {
       },
     });
 
-    const messagesResource = restApi.root.addResource("messages");
-
-    const messagesPostIntegration = new apiGw.LambdaIntegration(
-      messagesPostLambda
-    );
-    messagesResource.addMethod("POST", messagesPostIntegration);
+    new MessagesConstruct(this, "messagesConstrcut", {
+      removalPolicy: REMOVAL_POLICY,
+      restApi: restApi,
+    });
   }
 }
