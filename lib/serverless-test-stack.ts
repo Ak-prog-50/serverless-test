@@ -50,11 +50,11 @@ export class ServerlessTestStack extends cdk.Stack {
     messagesBucket.grantWrite(messagesPostLambda);
 
     // API Gateway & access logs for API gw
-    const logGroup = new LogGroup(this, "myCarbonRestAPIAccessLogs", {
+    const logGroup = new LogGroup(this, "accessLogs", {
       retention: RetentionDays.ONE_DAY,
       removalPolicy: REMOVAL_POLICY,
     });
-    const restApi = new apiGw.RestApi(this, "myCarbonRestAPI", {
+    const restApi = new apiGw.RestApi(this, "ServerlessTestRestAPI", {
       restApiName: "servelress-test-api",
       defaultCorsPreflightOptions: {
         allowOrigins: apiGw.Cors.ALL_ORIGINS,
