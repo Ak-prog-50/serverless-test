@@ -34,3 +34,7 @@ const serverlessTestStack = new ServerlessTestStack(
 cdk.Tags.of(serverlessTestStack).add("database", "serverlessTest", {
   includeResourceTypes: ["AWS::DynamoDB::Table"],
 });
+// Cloudformation doesn't add stackId tag to dynamoDB and cognito user pools
+cdk.Tags.of(serverlessTestStack).add("stackName", "serverlessTestStack", {
+  includeResourceTypes: ["AWS::DynamoDB::Table"],
+});

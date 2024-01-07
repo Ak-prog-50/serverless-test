@@ -1,4 +1,4 @@
-import { Duration, RemovalPolicy } from "aws-cdk-lib";
+import { CfnOutput, Duration, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
@@ -53,5 +53,9 @@ export class MessagesConstruct extends Construct {
 
     const messagesPostIntegration = new LambdaIntegration(messagesPostLambda);
     messagesResource.addMethod("POST", messagesPostIntegration);
+
+    new CfnOutput(this, "S3BucketURL", {
+      value: messagesBucket.urlForObject(), // bucket URL will be returned.
+    });
   }
 }
