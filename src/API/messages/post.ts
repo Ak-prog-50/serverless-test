@@ -34,11 +34,16 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const requestBody: TRequestBody = event.body && JSON.parse(event.body);
     if (!requestBody || Object.keys(requestBody).length !== 1)
       throw ApiError.badRequest("Invalid request body!");
+
     const message = requestBody.message;
+
+    // message validation logic - all field in metadata are required.
     const expectedKeys = ["message_time", "company_id", "message_id"] as const;
-    const isMessageValid = expectedKeys.every(
-      (key) => key in message.metadata && message.metadata[key]
-    );
+    const isMessageValid =
+      message.metadata &&
+      expectedKeys.every(
+        (key) => key in message.metadata && message.metadata[key]
+      );
     if (!isMessageValid) throw ApiError.badRequest("Message is Invalid!");
 
     const { message_id, company_id } = message.metadata;
