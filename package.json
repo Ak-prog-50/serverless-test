@@ -12,6 +12,7 @@
     "deploy": "cdk deploy --outputs-file outputs.json"
   },
   "devDependencies": {
+    "@mhlabs/cfn-diagram": "^1.1.38",
     "@types/aws-lambda": "^8.10.131",
     "@types/jest": "^29.5.8",
     "@types/node": "20.9.0",
