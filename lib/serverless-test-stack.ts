@@ -73,7 +73,7 @@ export class ServerlessTestStack extends cdk.Stack {
       },
     });
 
-    const messagesResource = restApi.root.addResource("/messages");
+    const messagesResource = restApi.root.addResource("messages");
 
     const messagesPostIntegration = new apiGw.LambdaIntegration(
       messagesPostLambda
