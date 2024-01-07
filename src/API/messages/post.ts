@@ -11,15 +11,31 @@ const s3Client = new S3Client({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
+// Request event's body should be a JSON stringified object of this type
+type TRequestBody = {
+  message: {
+    metadata: {
+      message_time: string;
+      company_id: string;
+      message_id: string;
+    };
+    data: {
+      order_id: string;
+      order_time: string;
+      order_amount: number;
+    };
+  };
+};
+
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
     if (!MESSAGES_BUCKET_NAME || !MESSAGES_TABLE_NAME)
       throw ApiError.internal("ENV variables are not set!");
-    const requestBody = event.body && JSON.parse(event.body);
+    const requestBody: TRequestBody = event.body && JSON.parse(event.body);
     if (!requestBody || Object.keys(requestBody).length !== 1)
       throw ApiError.badRequest("Invalid request body!");
     const message = requestBody.message;
-    const expectedKeys = ["message_time", "company_id", "message_id"];
+    const expectedKeys = ["message_time", "company_id", "message_id"] as const;
     const isMessageValid = expectedKeys.every(
       (key) => key in message.metadata && message.metadata[key]
     );
