@@ -46,6 +46,9 @@ export class ServerlessTestStack extends cdk.Stack {
       },
     });
 
+    messagesTable.grantWriteData(messagesPostLambda);
+    messagesBucket.grantWrite(messagesPostLambda);
+
     // API Gateway & log group
     const logGroup = new LogGroup(this, "myCarbonRestAPIAccessLogs", {
       retention: RetentionDays.ONE_DAY,
