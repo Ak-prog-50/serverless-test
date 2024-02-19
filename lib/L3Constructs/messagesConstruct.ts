@@ -11,6 +11,9 @@ interface IProps {
   restApi: RestApi;
 }
 
+/**
+ * Creates a messages dynamo table, s3 bucket and lambda function and integrates with API GW
+ */
 export class MessagesConstruct extends Construct {
   constructor(scope: Construct, id: string, props: IProps) {
     super(scope, id);
