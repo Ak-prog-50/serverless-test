@@ -8,6 +8,7 @@
 - Configure your IAM credentials ( either as env varaibles / shared credentials file )
 - Install packages - `npm install`
 - Run `cdk bootsrap` if you haven't done previously in the curent AWS region. _( this command creates a bootstrap stack that will be required for CDK operations. )_
+- If you need access logs for API GW, should have a account wide IAM role ( per region ) to grant cloudwatch logs write permissions to all API Gws. And uncomment `deployOptions` prop in `serverless-test-stack.ts` file.
 - Use `npm run deploy / yarn deploy`. It will output API GW root url to a file named outputs.json.
 - **_Add that value to below postman collection's `backendURL` variable._**
 
