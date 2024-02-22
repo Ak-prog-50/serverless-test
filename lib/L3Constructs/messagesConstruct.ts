@@ -13,7 +13,7 @@ interface IProps {
 }
 
 /**
- * Creates a messages dynamo table, s3 bucket and lambda function and integrates with API GW
+ * Creates a messages dynamo table, s3 bucket and lambda function and creates an event source mapping with sqs queue placed behind the api gw
  */
 export class MessagesConstruct extends Construct {
   constructor(scope: Construct, id: string, props: IProps) {
