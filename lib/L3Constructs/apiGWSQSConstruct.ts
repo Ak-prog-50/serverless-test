@@ -26,7 +26,9 @@ export class ApiGwSqsConstruct extends Construct {
     // Create SQS queue if not in props;
     this.customQueue =
       props.sqsQueue ??
-      new sqs.Queue(this, "apigwSqs-queue", { queueName: "serverlessTestQueue" });
+      new sqs.Queue(this, "apigwSqs-queue", {
+        queueName: "serverlessTestQueue",
+      });
 
     // Create IAM Role for API Gateway
     const integrationRole = new iam.Role(this, "apigwSqs-integration-role", {
@@ -90,8 +92,9 @@ export class ApiGwSqsConstruct extends Construct {
         },
       });
 
-    // Post method
-    this.customApiGateway.root.addMethod("POST", apiGwSqsIntegration, {
+    // messages resource and Post method
+    const messagesResource = this.customApiGateway.root.addResource("messages");
+    messagesResource.addMethod("POST", apiGwSqsIntegration, {
       methodResponses: [
         {
           statusCode: "400",
