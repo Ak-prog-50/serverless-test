@@ -23,11 +23,17 @@ export class ApiGwSqsConstruct extends Construct {
   constructor(scope: Construct, id: string, props: ApiGwSqsProps) {
     super(scope, id);
 
+    const deadLetterQueue = new sqs.Queue(this, 'dead-letter-queue');
+
     // Create SQS queue if not in props;
     this.customQueue =
       props.sqsQueue ??
       new sqs.Queue(this, "apigwSqs-queue", {
         queueName: "serverlessTestQueue",
+        deadLetterQueue: {
+          queue: deadLetterQueue,
+          maxReceiveCount: 2
+        }
       });
 
     // Create IAM Role for API Gateway
