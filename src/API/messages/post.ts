@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler, SQSHandler } from "aws-lambda";
+import { SQSHandler } from "aws-lambda";
 import { ApiResponse } from "../../utils/ApiResponse";
 import { ApiError } from "../../utils/ApiError";
 import { env } from "process";
@@ -67,15 +67,14 @@ export const handler: SQSHandler = async (event) => {
 
     await docClient.send(command);
 
-    // return ApiResponse.success("Messages procced and stored!");
-    // TODO: take care of return
+    const apiResponse = ApiResponse.success("Messages procced and stored!");
+    // TODO: Send the success message into a sqs queue
   } catch (error) {
+    // Rethrows error if it's unknwon type. Lambda will get notified of the invocation failure and resend the message to queue.
     console.error(error);
-    const retError =
-      error instanceof ApiError
-        ? error
-        : ApiError.internal("Intrenal Server Error");
-    // return retError;
-    // TODO: take care of return
+    if (error instanceof ApiError) {
+      // TODO: send the error message into a sqs queue
+    }
+    else throw error;
   }
 };
