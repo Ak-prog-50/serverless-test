@@ -8,18 +8,22 @@ import { IQueue } from "aws-cdk-lib/aws-sqs";
 import * as iam from "aws-cdk-lib/aws-iam";
 
 interface IProps {
+  /**@responseQueue - SQS Queue to store Lambda function responses */
   removalPolicy: RemovalPolicy;
-  sqsQueue: IQueue;
+  msgsPostRouteQueue: IQueue;
+  responseQueue: IQueue;
 }
 
 /**
- * Creates a messages dynamo table, s3 bucket and lambda function and creates an event source mapping with sqs queue placed behind the api gw
+ * Creates a messages dynamo table, s3 bucket and lambda function to
+ * handle POST request messages and an event source mapping with
+ * sqs queue placed behind the api gateway.
  */
 export class MessagesConstruct extends Construct {
   constructor(scope: Construct, id: string, props: IProps) {
     super(scope, id);
 
-    const { removalPolicy, sqsQueue } = props;
+    const { removalPolicy, msgsPostRouteQueue, responseQueue } = props;
 
     const messagesTable = new Table(this, `messages-table`, {
       partitionKey: {
@@ -59,6 +63,7 @@ export class MessagesConstruct extends Construct {
       environment: {
         MESSAGES_BUCKET_NAME: messagesBucket.bucketName,
         MESSAGES_TABLE_NAME: messagesTable.tableName,
+        RESPONSE_QUEUE_URL: responseQueue.queueUrl
       },
       role: lambdaRole,
     });
@@ -67,15 +72,11 @@ export class MessagesConstruct extends Construct {
     messagesBucket.grantWrite(messagesPostLambda);
 
     // creates new event source mapping from sqs queue to lambda
-    new EventSourceMapping(
-      this,
-      "QueueConsumerFunctionMySQSEvent",
-      {
-        target: messagesPostLambda,
-        batchSize: 10,
-        eventSourceArn: sqsQueue.queueArn,
-      }
-    );
+    new EventSourceMapping(this, "QueueConsumerFunctionMySQSEvent", {
+      target: messagesPostLambda,
+      batchSize: 10,
+      eventSourceArn: msgsPostRouteQueue.queueArn,
+    });
 
     new CfnOutput(this, "uploaderlambdaFunctionName", {
       value: messagesPostLambda.functionName,
