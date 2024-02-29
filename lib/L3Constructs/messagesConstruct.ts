@@ -11,7 +11,7 @@ interface IProps {
   /**@responseQueue - SQS Queue to store Lambda function responses */
   removalPolicy: RemovalPolicy;
   msgsPostRouteQueue: IQueue;
-  responseQueue: IQueue;
+  // responseQueue: IQueue;
 }
 
 /**
@@ -23,7 +23,7 @@ export class MessagesConstruct extends Construct {
   constructor(scope: Construct, id: string, props: IProps) {
     super(scope, id);
 
-    const { removalPolicy, msgsPostRouteQueue, responseQueue } = props;
+    const { removalPolicy, msgsPostRouteQueue } = props;
 
     const messagesTable = new Table(this, `messages-table`, {
       partitionKey: {
@@ -63,7 +63,7 @@ export class MessagesConstruct extends Construct {
       environment: {
         MESSAGES_BUCKET_NAME: messagesBucket.bucketName,
         MESSAGES_TABLE_NAME: messagesTable.tableName,
-        RESPONSE_QUEUE_URL: responseQueue.queueUrl
+        // RESPONSE_QUEUE_URL: responseQueue.queueUrl
       },
       role: lambdaRole,
     });

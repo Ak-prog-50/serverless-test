@@ -10,16 +10,16 @@ export class ServerlessTestStack extends cdk.Stack {
     super(scope, id, props);
 
     const apiGWSQSConstruct = new ApiGwSqsConstruct(this, "apiGwSqs", {});
-    const responseHandlerConstruct = new ResponseHandlerConstruct(
-      this,
-      "responseHandler",
-      {}
-    );
+    // const responseHandlerConstruct = new ResponseHandlerConstruct(
+    //   this,
+    //   "responseHandler",
+    //   {}
+    // );
 
     new MessagesConstruct(this, "messagesConstrcut", {
       removalPolicy: REMOVAL_POLICY,
       msgsPostRouteQueue: apiGWSQSConstruct.customQueue,
-      responseQueue: responseHandlerConstruct.responseQueue,
+      // responseQueue: responseHandlerConstruct.responseQueue,
     });
   }
 }
