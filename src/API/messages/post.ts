@@ -27,7 +27,8 @@ type TRequestBody = {
 
 const validateEnvVariables = () => {
   if (!MESSAGES_BUCKET_NAME || !MESSAGES_TABLE_NAME)
-    throw ApiError.internal("Environment variables are not set!");
+    return ApiError.internal("Environment variables are not set!");
+  else return null;
 };
 
 const validateMessage = (message: any) => {
@@ -67,7 +68,11 @@ const persistMessage = async (message: TRequestBody["message"]) => {
 };
 
 export const handler: SQSHandler = async (event) => {
-  validateEnvVariables();
+  const err = validateEnvVariables();
+  if (err) {
+    console.error(err);
+    return;
+  }
 
   for (const record of event.Records) {
     try {
