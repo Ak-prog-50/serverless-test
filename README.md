@@ -16,8 +16,11 @@
 
 ## Architecture Diagram
 
-\*\* This diagram is created using eraser.io AI diagram creator
-![Alt text](architecture.png)
+![Alt text](architecture_v1.png)
+
+## What Happens?
+
+### POST `/messages` route 
 
 - User sents a message in below format.
 
@@ -37,5 +40,25 @@
 ```
 
 - This message gets validated in lambda function and stored as is in S3 and DynamoDB. ( validated based on message.metadata )
-- DynamoDB table primary key is message_id. Message is stored as a JSON strigified object.
+
 - message.json is stored in S3 under company name.
+
+- DynamoDB table primary key is `message_id`. Message is stored as a JSON strigified object. `company_id` is used as a Global Secondary Index to support company based lookups.
+
+- message status is saved as "Processed" from the same PutCommand used to write to message to DB. 
+
+- Lambda service polls the SQS Buffer queue containing API requests. Batch Size is 1 for simplicity sake. 
+
+- If an error was thrown it will be first caught by the catch block inside Lambda code. If error is a known non-transient error ( ex:- validation error ), error message is written to DB. Otherwise error will be rethrown from the catch block. 
+
+- Lambda service will then identify this request as failed, and will push to SQS Queue for maximum of 2 times. Then it will be moved to DLQ.
+
+- A cloudwatch Alarm is configured to trigger, based on a certain DLQ metric. Alarm will publish to a SNS topic, which can be used to notify interested parties.
+
+- Lambda automatically writes to cw logs. Another alarm will go off, based on Lambda logs metric filter.
+ 
+### GET `/messages` route
+
+- 
+
+## Idempotency and Retrying
