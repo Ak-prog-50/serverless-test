@@ -65,17 +65,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (messageId) {
       const message = await getMessageById(messageId);
-      return ApiResponse.success("", { message });
+      return ApiResponse.success("", { result: message });
     } else if (companyId) {
       const { messages, LastEvaluatedKey } = await getMessagesByCompanyId(
         companyId,
         startKey
       );
       return ApiResponse.success("", {
-        messages,
-        lastEvaluatedKey: LastEvaluatedKey
-          ? encodeURIComponent(JSON.stringify(LastEvaluatedKey))
-          : null,
+        result: {
+          messages,
+          lastEvaluatedKey: LastEvaluatedKey
+            ? encodeURIComponent(JSON.stringify(LastEvaluatedKey))
+            : null,
+        },
       });
     } else {
       throw ApiError.badRequest(
