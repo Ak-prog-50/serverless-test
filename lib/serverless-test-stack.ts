@@ -19,6 +19,7 @@ export class ServerlessTestStack extends cdk.Stack {
     new MessagesConstruct(this, "messagesConstrcut", {
       removalPolicy: REMOVAL_POLICY,
       msgsPostRouteQueue: apiGWSQSConstruct.customQueue,
+      messagesResource: apiGWSQSConstruct.messagesResource,
       // responseQueue: responseHandlerConstruct.responseQueue,
     });
   }

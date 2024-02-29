@@ -19,11 +19,12 @@ interface ApiGwSqsProps {
 export class ApiGwSqsConstruct extends Construct {
   readonly customApiGateway: apiGw.IRestApi;
   readonly customQueue: sqs.IQueue;
+  readonly messagesResource: apiGw.Resource;
 
   constructor(scope: Construct, id: string, props: ApiGwSqsProps) {
     super(scope, id);
 
-    const deadLetterQueue = new sqs.Queue(this, 'dead-letter-queue');
+    const deadLetterQueue = new sqs.Queue(this, "dead-letter-queue");
 
     // Create SQS queue if not in props;
     this.customQueue =
@@ -32,8 +33,8 @@ export class ApiGwSqsConstruct extends Construct {
         queueName: "serverlessTestQueue",
         deadLetterQueue: {
           queue: deadLetterQueue,
-          maxReceiveCount: 2
-        }
+          maxReceiveCount: 2,
+        },
       });
 
     // Create IAM Role for API Gateway
@@ -99,8 +100,8 @@ export class ApiGwSqsConstruct extends Construct {
       });
 
     // messages resource and Post method
-    const messagesResource = this.customApiGateway.root.addResource("messages");
-    messagesResource.addMethod("POST", apiGwSqsIntegration, {
+    this.messagesResource = this.customApiGateway.root.addResource("messages");
+    this.messagesResource.addMethod("POST", apiGwSqsIntegration, {
       methodResponses: [
         {
           statusCode: "400",

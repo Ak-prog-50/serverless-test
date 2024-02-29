@@ -6,11 +6,13 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { IQueue } from "aws-cdk-lib/aws-sqs";
 import * as iam from "aws-cdk-lib/aws-iam";
+import { LambdaIntegration, Resource } from "aws-cdk-lib/aws-apigateway";
 
 interface IProps {
   /**@responseQueue - SQS Queue to store Lambda function responses */
   removalPolicy: RemovalPolicy;
   msgsPostRouteQueue: IQueue;
+  messagesResource: Resource;
   // responseQueue: IQueue;
 }
 
@@ -23,7 +25,7 @@ export class MessagesConstruct extends Construct {
   constructor(scope: Construct, id: string, props: IProps) {
     super(scope, id);
 
-    const { removalPolicy, msgsPostRouteQueue } = props;
+    const { removalPolicy, msgsPostRouteQueue, messagesResource } = props;
 
     const messagesTable = new Table(this, `messages-table`, {
       partitionKey: {
@@ -33,6 +35,7 @@ export class MessagesConstruct extends Construct {
       removalPolicy: removalPolicy,
     });
 
+    const companyIdIndexName = "companyIdIndex";
     messagesTable.addGlobalSecondaryIndex({
       indexName: "companyIdIndex",
       partitionKey: { name: "companyId", type: AttributeType.STRING },
@@ -55,26 +58,47 @@ export class MessagesConstruct extends Construct {
     });
 
     const lambdaFunctionCodeEntry = `src/API/messages`;
-    const messagesPostLambda = new NodejsFunction(this, "uploader-lambda", {
-      functionName: `messages-post-lambda`,
+    const messagesPostLambda = new NodejsFunction(
+      this,
+      "messages-post-lambda",
+      {
+        functionName: `messages-post-lambda`,
+        runtime: Runtime.NODEJS_18_X,
+        handler: "handler",
+        entry: `${lambdaFunctionCodeEntry}/post.ts`,
+        timeout: Duration.seconds(25),
+        memorySize: 256,
+        bundling: {
+          minify: true,
+        },
+        environment: {
+          MESSAGES_BUCKET_NAME: messagesBucket.bucketName,
+          MESSAGES_TABLE_NAME: messagesTable.tableName,
+          // RESPONSE_QUEUE_URL: responseQueue.queueUrl
+        },
+        role: lambdaRole,
+      }
+    );
+
+    const messagesGetLambda = new NodejsFunction(this, "messages-get-lambda", {
+      functionName: `messages-get-lambda`,
       runtime: Runtime.NODEJS_18_X,
       handler: "handler",
-      entry: `${lambdaFunctionCodeEntry}/post.ts`,
+      entry: `${lambdaFunctionCodeEntry}/get.ts`,
       timeout: Duration.seconds(25),
       memorySize: 256,
       bundling: {
         minify: true,
       },
       environment: {
-        MESSAGES_BUCKET_NAME: messagesBucket.bucketName,
         MESSAGES_TABLE_NAME: messagesTable.tableName,
-        // RESPONSE_QUEUE_URL: responseQueue.queueUrl
+        COMPANY_INDEX_NAME: companyIdIndexName,
       },
-      role: lambdaRole,
     });
 
     messagesTable.grantWriteData(messagesPostLambda);
     messagesBucket.grantWrite(messagesPostLambda);
+    messagesTable.grantReadData(messagesGetLambda);
 
     // creates new event source mapping from sqs queue to lambda
     new EventSourceMapping(this, "QueueConsumerFunctionMySQSEvent", {
@@ -82,6 +106,9 @@ export class MessagesConstruct extends Construct {
       batchSize: 1,
       eventSourceArn: msgsPostRouteQueue.queueArn,
     });
+
+    // get method
+    messagesResource.addMethod("GET", new LambdaIntegration(messagesGetLambda));
 
     new CfnOutput(this, "uploaderlambdaFunctionName", {
       value: messagesPostLambda.functionName,
