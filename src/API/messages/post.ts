@@ -4,14 +4,11 @@ import { env } from "process";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { SendMessageBatchCommand, SQSClient } from "@aws-sdk/client-sqs";
-import { ApiResponse } from "../../utils/ApiResponse";
 
-const { MESSAGES_BUCKET_NAME, MESSAGES_TABLE_NAME, RESPONSE_QUEUE_URL } = env;
+const { MESSAGES_BUCKET_NAME, MESSAGES_TABLE_NAME } = env;
 const s3Client = new S3Client({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const sqsClient = new SQSClient({});
 
 type TRequestBody = {
   message: {
@@ -29,7 +26,7 @@ type TRequestBody = {
 };
 
 const validateEnvVariables = () => {
-  if (!MESSAGES_BUCKET_NAME || !MESSAGES_TABLE_NAME || !RESPONSE_QUEUE_URL)
+  if (!MESSAGES_BUCKET_NAME || !MESSAGES_TABLE_NAME)
     throw ApiError.internal("Environment variables are not set!");
 };
 
@@ -46,6 +43,7 @@ const validateMessage = (message: any) => {
 const persistMessage = async (message: TRequestBody["message"]) => {
   const { message_id, company_id } = message.metadata;
 
+  // Attempt to save the message to S3
   await s3Client.send(
     new PutObjectCommand({
       Bucket: MESSAGES_BUCKET_NAME,
@@ -54,27 +52,16 @@ const persistMessage = async (message: TRequestBody["message"]) => {
     })
   );
 
+  // Save the message and its processing status to DynamoDB
   await docClient.send(
     new PutCommand({
       TableName: MESSAGES_TABLE_NAME,
       Item: {
         messageId: message_id,
+        company_id: company_id,
         message: JSON.stringify(message),
+        status: "Processed", // Indicate success
       },
-    })
-  );
-};
-
-const sendMessageToSQS = async (queueUrl: string, body: ApiResponse | ApiError) => {
-  await sqsClient.send(
-    new SendMessageBatchCommand({
-      QueueUrl: queueUrl,
-      Entries: [
-        {
-          Id: Date.now().toString(), // Unique id for the message, consider a more robust unique identifier
-          MessageBody: JSON.stringify(body),
-        },
-      ],
     })
   );
 };
@@ -92,18 +79,30 @@ export const handler: SQSHandler = async (event) => {
 
       await persistMessage(requestBody.message);
 
-      await sendMessageToSQS(
-        RESPONSE_QUEUE_URL as string,
-        ApiResponse.success(`Message processed and stored: ${record.messageId}`)
-      );
+      console.log(`Message processed and stored: ${record.messageId}`);
     } catch (error: any) {
       console.error("Error processing: ", record.messageId, error);
-      await sendMessageToSQS(
-        RESPONSE_QUEUE_URL as string,
-        ApiError.internal(
-          `Error processing message: ${record.messageId}, Error: ${error.message}`
-        )
+
+      // Update the processing status in DynamoDB with error details
+      const requestBody: TRequestBody = JSON.parse(record.body);
+      const { message_id, company_id } = requestBody.message.metadata;
+
+      const retError =
+        error instanceof ApiError
+          ? ApiError
+          : ApiError.internal(`Error processing message: ${record.messageId}`);
+      await docClient.send(
+        new PutCommand({
+          TableName: MESSAGES_TABLE_NAME,
+          Item: {
+            messageId: message_id,
+            company_id: company_id,
+            error: JSON.stringify(retError), // Store error
+            status: "Failed", // Indicate failure
+          },
+        })
       );
+
       if (!(error instanceof ApiError)) {
         throw error; // Rethrow error for AWS Lambda to handle the retry
       }

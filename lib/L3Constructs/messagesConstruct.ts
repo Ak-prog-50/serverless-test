@@ -74,7 +74,7 @@ export class MessagesConstruct extends Construct {
     // creates new event source mapping from sqs queue to lambda
     new EventSourceMapping(this, "QueueConsumerFunctionMySQSEvent", {
       target: messagesPostLambda,
-      batchSize: 10,
+      batchSize: 1,
       eventSourceArn: msgsPostRouteQueue.queueArn,
     });
 
