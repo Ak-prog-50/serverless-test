@@ -110,10 +110,6 @@ export class MessagesConstruct extends Construct {
     // get method
     messagesResource.addMethod("GET", new LambdaIntegration(messagesGetLambda));
 
-    new CfnOutput(this, "uploaderlambdaFunctionName", {
-      value: messagesPostLambda.functionName,
-    });
-
     new CfnOutput(this, "S3BucketURL", {
       value: messagesBucket.urlForObject(), // bucket URL will be returned.
     });
