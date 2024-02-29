@@ -58,7 +58,7 @@ const persistMessage = async (message: TRequestBody["message"]) => {
       TableName: MESSAGES_TABLE_NAME,
       Item: {
         messageId: message_id,
-        company_id: company_id,
+        companyId: company_id,
         message: JSON.stringify(message),
         status: "Processed", // Indicate success
       },
@@ -96,7 +96,7 @@ export const handler: SQSHandler = async (event) => {
           TableName: MESSAGES_TABLE_NAME,
           Item: {
             messageId: message_id,
-            company_id: company_id,
+            companyId: company_id,
             error: JSON.stringify(retError), // Store error
             status: "Failed", // Indicate failure
           },

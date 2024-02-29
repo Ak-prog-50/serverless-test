@@ -33,6 +33,11 @@ export class MessagesConstruct extends Construct {
       removalPolicy: removalPolicy,
     });
 
+    messagesTable.addGlobalSecondaryIndex({
+      indexName: "companyIdIndex",
+      partitionKey: { name: "companyId", type: AttributeType.STRING },
+    });
+
     const messagesBucket = new Bucket(this, "messages-bucket", {
       removalPolicy: removalPolicy,
     });
