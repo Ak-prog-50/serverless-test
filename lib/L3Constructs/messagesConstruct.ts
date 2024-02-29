@@ -62,7 +62,7 @@ export class MessagesConstruct extends Construct {
       this,
       "messages-post-lambda",
       {
-        functionName: `messages-post-lambda`,
+        // functionName: `messages-post-lambda`,
         runtime: Runtime.NODEJS_18_X,
         handler: "handler",
         entry: `${lambdaFunctionCodeEntry}/post.ts`,
@@ -81,7 +81,7 @@ export class MessagesConstruct extends Construct {
     );
 
     const messagesGetLambda = new NodejsFunction(this, "messages-get-lambda", {
-      functionName: `messages-get-lambda`,
+      // functionName: `messages-get-lambda`,
       runtime: Runtime.NODEJS_18_X,
       handler: "handler",
       entry: `${lambdaFunctionCodeEntry}/get.ts`,

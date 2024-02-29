@@ -65,21 +65,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     if (messageId) {
       const message = await getMessageById(messageId);
-      return ApiResponse.success("Success!", JSON.stringify({ message }));
+      return ApiResponse.success("", { message });
     } else if (companyId) {
       const { messages, LastEvaluatedKey } = await getMessagesByCompanyId(
         companyId,
         startKey
       );
-      return ApiResponse.success(
-        "Success!",
-        JSON.stringify({
-          messages,
-          lastEvaluatedKey: LastEvaluatedKey
-            ? encodeURIComponent(JSON.stringify(LastEvaluatedKey))
-            : null,
-        })
-      );
+      return ApiResponse.success("", {
+        messages,
+        lastEvaluatedKey: LastEvaluatedKey
+          ? encodeURIComponent(JSON.stringify(LastEvaluatedKey))
+          : null,
+      });
     } else {
       throw ApiError.badRequest(
         "Query parameter companyId or messageId is required"
