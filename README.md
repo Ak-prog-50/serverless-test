@@ -3,6 +3,14 @@
 - IAC tool is AWS CDK. Infra code can be found in lib directory. src directory contains lambda function code and utils.
 - This CDK stack is account/region agnostic.
 
+## Table of Contents
+- [Setup](#setup)
+- [Architecture Diagram](#architecture-diagram)
+- [What Happens?](#what-happens)
+  - [POST `/messages` route](#post-messages-route)
+  - [GET `/messages` route](#get-messages-route)
+- [Idempotency and Retrying](#idempotency-and-retrying)
+
 ## Setup
 
 - Configure your IAM credentials ( either as env varaibles / shared credentials file )
@@ -62,3 +70,5 @@
 - 
 
 ## Idempotency and Retrying
+
+- 
