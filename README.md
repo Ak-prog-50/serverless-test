@@ -9,7 +9,8 @@
 - [What Happens?](#what-happens)
   - [POST `/messages` route](#post-messages-route)
   - [GET `/messages` route](#get-messages-route)
-- [Idempotency and Retrying](#idempotency-and-retrying)
+- [Retrying](#retrying)
+- [Idempotency](#idempotency)
 
 ## Setup
 
@@ -69,6 +70,14 @@
 
 - 
 
-## Idempotency and Retrying
+## Retrying
 
-- 
+- All thrown errors in POST lambda will be first caught by the catch block inside Lambda code. If error is a known non-transient error ( ex:- validation error ), error message is written to DB. Otherwise error will be rethrown from the catch block.
+- Lambda service will then identify this request as failed, and will push to SQS Queue for maximum of 2 times. Then it will be moved to DLQ.
+- AWS SDK has exponential retry mechanism built in. So retrying for failed SDK operations will be handled. 
+- Summary - For retries, SDK built in retries + SQS and Lambda managed retry mechanisms
+
+## Idempotency
+
+- DDB put and S3 put are inherently idempotent. Which means retries does not have harmful side effects in current architecture. 
+- For example if s3 PutObject succesful and ddb put fails, retrying the same request pose no harm.
