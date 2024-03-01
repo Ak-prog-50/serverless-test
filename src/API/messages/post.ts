@@ -90,23 +90,25 @@ export const handler: SQSHandler = async (event) => {
 
       // Update the processing status in DynamoDB with error details
       const requestBody: TRequestBody = JSON.parse(record.body);
-      const { message_id, company_id } = requestBody.message.metadata;
+      const { message_id, company_id } = requestBody?.message?.metadata;
 
       const retError =
         error instanceof ApiError
           ? ApiError
           : ApiError.internal(`Error processing message: ${record.messageId}`);
-      await docClient.send(
-        new PutCommand({
-          TableName: MESSAGES_TABLE_NAME,
-          Item: {
-            messageId: message_id,
-            companyId: company_id,
-            error: JSON.stringify(retError), // Store error
-            status: "Failed", // Indicate failure
-          },
-        })
-      );
+      message_id &&
+        company_id &&
+        (await docClient.send(
+          new PutCommand({
+            TableName: MESSAGES_TABLE_NAME,
+            Item: {
+              messageId: message_id,
+              companyId: company_id,
+              error: JSON.stringify(retError), // Store error
+              status: "Failed", // Indicate failure
+            },
+          })
+        ));
 
       if (!(error instanceof ApiError)) {
         throw error; // Rethrow error for AWS Lambda to handle the retry
